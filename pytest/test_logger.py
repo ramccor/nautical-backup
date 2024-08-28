@@ -24,7 +24,7 @@ class TestLogger:
         assert logger.script_logging_level is LogLevel.INFO
         assert logger.report_file_logging_level is LogLevel.INFO
         assert logger.report_file_on_backup_only is True
-        assert logger.dest_location == "/app/destination"
+        assert logger.primary_dest_dir == "/app/destination"
 
         monkeypatch.setenv("LOG_LEVEL", "DEBUG")
         monkeypatch.setenv("REPORT_FILE_LOG_LEVEL", "DEBUG")
@@ -50,7 +50,7 @@ class TestLogger:
     @patch("builtins.open", new_callable=MagicMock)
     def test_create_report_file(self, mock_open: MagicMock, tmp_path: Path):
         logger = Logger()
-        logger.dest_location = tmp_path
+        logger.primary_dest_dir = tmp_path
         logger.report_file = "mock_report_file.txt"
 
         mock_path = tmp_path / logger.report_file
@@ -72,7 +72,7 @@ class TestLogger:
         (tmp_path / f"{report_file}").touch()
 
         logger = Logger()
-        logger.dest_location = tmp_path
+        logger.primary_dest_dir = tmp_path
         logger.report_file_on_backup_only = False
 
         logger._delete_old_report_files()
@@ -88,7 +88,7 @@ class TestLogger:
 
         report_file = f"Backup Report - {datetime.now().strftime('%Y-%m-%d')}.txt"
         logger = Logger()
-        logger.dest_location = tmp_path
+        logger.primary_dest_dir = tmp_path
         logger.report_file_on_backup_only = False
 
         logger._create_new_report_file()
@@ -110,7 +110,7 @@ class TestLogger:
         monkeypatch.setenv("REPORT_FILE_LOG_LEVEL", "TRACE")
 
         logger = Logger()
-        logger.dest_location = tmp_path
+        logger.primary_dest_dir = tmp_path
         logger.report_file = "mock_report_file.txt"
         logger.report_file_on_backup_only = False
 
@@ -139,7 +139,7 @@ class TestLogger:
         monkeypatch.setenv("REPORT_FILE_LOG_LEVEL", "DEBUG")
 
         logger = Logger()
-        logger.dest_location = tmp_path
+        logger.primary_dest_dir = tmp_path
         logger.report_file = "mock_report_file.txt"
 
         # Call log_this
@@ -166,7 +166,7 @@ class TestLogger:
         monkeypatch.setenv("REPORT_FILE_LOG_LEVEL", "INFO")
 
         logger = Logger()
-        logger.dest_location = tmp_path
+        logger.primary_dest_dir = tmp_path
         logger.report_file = "mock_report_file.txt"
 
         # Call log_this
@@ -192,7 +192,7 @@ class TestLogger:
         monkeypatch.setenv("REPORT_FILE_LOG_LEVEL", "WARN")
 
         logger = Logger()
-        logger.dest_location = tmp_path
+        logger.primary_dest_dir = tmp_path
         logger.report_file = "mock_report_file.txt"
 
         # Call log_this
@@ -217,7 +217,7 @@ class TestLogger:
         monkeypatch.setenv("REPORT_FILE_LOG_LEVEL", "ERROR")
 
         logger = Logger()
-        logger.dest_location = tmp_path
+        logger.primary_dest_dir = tmp_path
         logger.report_file = "mock_report_file.txt"
 
         # Call log_this
@@ -241,7 +241,7 @@ class TestLogger:
         monkeypatch.setenv("REPORT_FILE_LOG_LEVEL", "ERROR")
 
         logger = Logger()
-        logger.dest_location = tmp_path
+        logger.primary_dest_dir = tmp_path
         logger.report_file = "mock_report_file.txt"
 
         # Call log_this
@@ -263,7 +263,7 @@ class TestLogger:
         monkeypatch.setenv("REPORT_FILE_LOG_LEVEL", "INFO")
 
         logger = Logger()
-        logger.dest_location = tmp_path
+        logger.primary_dest_dir = tmp_path
         logger.report_file = "mock_report_file.txt"
 
         # Call log_this
@@ -279,7 +279,7 @@ class TestLogger:
     @patch("builtins.print")
     def test_print(self, mock_print: MagicMock, tmp_path: Path):
         logger = Logger()
-        logger.dest_location = tmp_path
+        logger.primary_dest_dir = tmp_path
         logger.report_file = "mock_report_file.txt"
 
         # Call log_this

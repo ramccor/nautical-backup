@@ -465,7 +465,6 @@ class NauticalBackup:
             return
 
         base_src_dir = Path(self.env.SOURCE_LOCATION)
-        # base_dest_dir = Path(self.env.DEST_LOCATION)
 
         if not os.path.exists(base_dest_dir):
             self.log_this(

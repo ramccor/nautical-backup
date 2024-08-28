@@ -1,7 +1,8 @@
+import copy
 import datetime
 import os
 from pathlib import Path
-from typing import Optional, Union
+from typing import List, Optional, Union
 from app.nautical_env import NauticalEnv
 from enum import Enum
 
@@ -39,8 +40,15 @@ class Logger:
         elif self.env.REPORT_FILE_ON_BACKUP_ONLY.lower() == "false":
             self.report_file_on_backup_only = False
 
-        self.dest_location: Union[str, Path] = os.environ.get("DEST_LOCATION", "")
         self.report_file = f"Backup Report - {datetime.datetime.now().strftime('%Y-%m-%d')}.txt"
+
+        # Load multiple report directories (if specified)
+        self.dest_dirs = copy.deepcopy(self.env.SECONDARY_DEST_DIRS)
+        self.primary_dest_dir = Path(
+            self.env.DEST_LOCATION
+        )  # Primary destination directory (if no secondary directories)
+        for dir in self.dest_dirs:
+            self.dest_dirs.insert(0, self.primary_dest_dir)
 
     @staticmethod
     def set_to_string(input: set) -> str:
@@ -67,38 +75,41 @@ class Logger:
 
     def _delete_old_report_files(self):
         """Only completed on Nautical init"""
-        if not os.path.exists(self.dest_location):
-            return
+        for dest_location in self.dest_dirs:
+            if not os.path.exists(dest_location):
+                return
 
-        for file in os.listdir(self.dest_location):
-            file.strip()
-            if file.startswith("Backup Report -") and file.endswith(".txt"):
-                if file != self.report_file:
-                    # Don't delete today's report file
-                    os.remove(os.path.join(self.dest_location, file))
+            for file in os.listdir(dest_location):
+                file.strip()
+                if file.startswith("Backup Report -") and file.endswith(".txt"):
+                    if file != self.report_file:
+                        # Don't delete today's report file
+                        os.remove(os.path.join(dest_location, file))
 
     def _create_new_report_file(self):
         """Only completed on Nautical init"""
         self._delete_old_report_files()
 
-        if not os.path.exists(self.dest_location):
-            raise FileNotFoundError(f"Destination location {self.dest_location} does not exist.")
+        for dest_location in self.dest_dirs:
+            if not os.path.exists(dest_location):
+                raise FileNotFoundError(f"Destination location {dest_location} does not exist.")
 
-        # Initialize the current report file with a header
-        with open(os.path.join(self.dest_location, self.report_file), "w+") as f:
-            f.write(f"Backup Report - {datetime.datetime.now()}\n")
+            # Initialize the current report file with a header
+            with open(os.path.join(dest_location, self.report_file), "w+") as f:
+                f.write(f"Backup Report - {datetime.datetime.now()}\n")
 
     def _write_to_report_file(self, log_message, log_level: Union[str, LogLevel] = LogLevel.INFO):
         level = self._parse_log_level(log_level)
         if level not in self.levels:
             return  # Check if level exists
 
-        # Check if folder exists
-        if not os.path.exists(self.dest_location):
-            raise FileNotFoundError(f"Destination location {self.dest_location} does not exist.")
+        for dest_location in self.dest_dirs:
+            # Check if folder exists
+            if not os.path.exists(dest_location):
+                raise FileNotFoundError(f"Destination location {dest_location} does not exist.")
 
-        with open(os.path.join(self.dest_location, self.report_file), "a") as f:
-            f.write(f"{datetime.datetime.now()} - {str(level)[9:]}: {log_message}\n")
+            with open(os.path.join(dest_location, self.report_file), "a") as f:
+                f.write(f"{datetime.datetime.now()} - {str(level)[9:]}: {log_message}\n")
 
     def log_this(self, log_message, log_level: Union[str, LogLevel] = LogLevel.INFO, log_type=LogType.DEFAULT):
 
